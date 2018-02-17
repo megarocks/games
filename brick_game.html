@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Gamedev Canvas Workshop</title>
+    <style>
+    	* { padding: 0; margin: 0; }
+    	canvas { background: #191919; display: block; margin: 32vh auto; }
+    </style>
+</head>
+<body>
+
+<canvas id="gameCanvas" width="480" height="320"></canvas>
+
+<script>
+	const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const game = {
+        rafId: null,
+        ball: {
+            x: 370,
+            y: 40,
+            radius: 10,
+            movementDelta: {
+                x: 5,
+                y: -5
+            }
+        },
+        area: {
+            width: canvas.width,
+            height: canvas.height
+        },
+        player: {
+            width: 100,
+            height: 25,
+            x: (canvas.width - 100) / 2,
+            y: canvas.height - 25 - 2,
+            movementDelta: 5
+        },
+        bricks: {
+          rows: 3,
+          cols: 5,
+          brickWidth: 75,
+          bricksHeight: 75,
+          brickPadding: 10,
+          brickOffsetTop: 30,
+          brickOffsetLeft: 30
+        },
+        rightPressed: false,
+        leftPressed: false
+    }
+    
+    document.addEventListener('keydown', keyDownListener);
+    document.addEventListener('keyup', keyUpListener);
+    main();
+
+    function main() {
+        game.rafId = requestAnimationFrame(main);
+        updateGameState();
+        renderFrame();
+    }
+
+    function renderFrame() {
+        ctx.clearRect(0,0, game.area.width, game.area.height);
+        drawPlayer();
+        drawBall();
+    }
+
+    function drawPlayer() {
+        ctx.beginPath();
+        ctx.rect(game.player.x, game.player.y, game.player.width, game.player.height);
+        ctx.fillStyle = '#cc6600';
+        ctx.fill();
+        ctx.closePath();
+    }
+
+    function drawBall(x, y){
+        ctx.beginPath();
+        ctx.arc(game.ball.x, game.ball.y,game.ball.radius,0, Math.PI*2,false);
+        ctx.fillStyle = '#b9e740';
+        ctx.fill();
+        ctx.closePath();
+    }
+
+    function updateGameState() {
+        game.ball.x += game.ball.movementDelta.x;
+        game.ball.y += game.ball.movementDelta.y;
+
+        const nextFrameBallX = game.ball.x + game.ball.movementDelta.x;
+        const nextFrameBallY = game.ball.y + game.ball.movementDelta.y;
+        if (nextFrameBallX > game.area.width - game.ball.radius || nextFrameBallX < game.ball.radius) {
+            game.ball.movementDelta.x = -game.ball.movementDelta.x;
+        }
+        if (nextFrameBallY < game.ball.radius) {    //  || nextFrameBallY > game.area.height - game.ball.radius
+            game.ball.movementDelta.y = -game.ball.movementDelta.y;
+        } else if (nextFrameBallY > game.area.height - game.ball.radius) {
+            if (nextFrameBallX > game.player.x && nextFrameBallX < game.player.x + game.player.width) { 
+                game.ball.movementDelta.y = -game.ball.movementDelta.y;
+            } else {
+                cancelAnimationFrame(game.rafId);
+                alert('game over');
+                document.location.reload()
+            }
+        }
+
+        if (game.leftPressed && game.player.x - game.player.movementDelta > 0) 
+            { game.player.x -= game.player.movementDelta; }
+        if (game.rightPressed && game.player.x + game.player.movementDelta < game.area.width - game.player.width) 
+            { game.player.x += game.player.movementDelta; }
+        console.log(game.player.x + game.player.movementDelta)
+    }
+
+    function keyDownListener(event) {
+        const { code } = event;
+        if (code === 'ArrowLeft') { game.leftPressed = true; }
+        if (code === 'ArrowRight') { game.rightPressed = true; }
+    }
+
+    function keyUpListener(event) {
+        const { code } = event;
+        if (code === 'ArrowLeft') { game.leftPressed = false; }
+        if (code === 'ArrowRight') { game.rightPressed = false; }
+    }
+</script>
+
+</body>
+</html>

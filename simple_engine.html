@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id="data"></div>
+<button onclick="startGame()">Start Game</button>
+<button onclick="stopGame(game.rafId)">Stop Game</button>
+<script>
+    const game = {};
+    const dataEl = document.getElementById('data');
+
+    function startGame() {
+        main();
+    }
+
+    function stopGame(gameLoopId) {
+        cancelAnimationFrame(gameLoopId);
+    }
+
+    function main(tFrame) {
+        game.rafId = window.requestAnimationFrame( main );
+        if (tFrame) dataEl.innerHTML = tFrame;
+    }
+</script>
+</body>
+</html>
