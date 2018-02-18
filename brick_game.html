@@ -14,6 +14,7 @@
       background: #191919;
       display: block;
       margin: 32vh auto;
+      cursor: none;
     }
   </style>
 </head>
@@ -32,8 +33,8 @@
         y: 240,
         radius: 10,
         movementDelta: {
-          x: 5,
-          y: -5
+          x: 3,
+          y: -3
         }
       },
       area: {
@@ -58,24 +59,25 @@
       },
       bricks: [],
       rightPressed: false,
-      leftPressed: false
+      leftPressed: false,
+      score: 0,
+      maxRoundPossibleScore: 0,
+      lives: 5,
+      maxRoundPossibleLives: 5
     }
 
-    for (let c = 0; c < game.brick.cols; c++) {
-      game.bricks[c] = [];
-      for (let r = 0; r < game.brick.rows; r++) {
-        game.bricks[c][r] = {
-          x: (c * (game.brick.width + game.brick.padding)) + game.brick.offsetLeft,
-          y: (r * (game.brick.height + game.brick.padding)) + game.brick.offsetTop
-        };
-      }
-    }
+    const initialState = JSON.parse(JSON.stringify(game));
+
+    createInitialBrickState();
 
     console.log(game);
 
     document.addEventListener('keydown', keyDownListener);
     document.addEventListener('keyup', keyUpListener);
+    document.addEventListener('mousemove', mouseMoveListener);
+
     main();
+
 
     function main() {
       game.rafId = requestAnimationFrame(main);
@@ -83,17 +85,67 @@
       renderFrame();
     }
 
+    function updateGameState() {
+      game.ball.x += game.ball.movementDelta.x;
+      game.ball.y += game.ball.movementDelta.y;
+
+      const nextFrameBallX = game.ball.x + game.ball.movementDelta.x;
+      const nextFrameBallY = game.ball.y + game.ball.movementDelta.y;
+      if (nextFrameBallX > game.area.width - game.ball.radius || nextFrameBallX < game.ball.radius) {
+        game.ball.movementDelta.x = -game.ball.movementDelta.x;
+      }
+      if (nextFrameBallY < game.ball.radius) { //  || nextFrameBallY > game.area.height - game.ball.radius
+        game.ball.movementDelta.y = -game.ball.movementDelta.y;
+      } else if (nextFrameBallY > game.area.height - game.ball.radius) {
+        if (nextFrameBallX > game.player.x && nextFrameBallX < game.player.x + game.player.width) {
+          game.ball.movementDelta.y = -game.ball.movementDelta.y;
+        } else {
+          if (game.lives <= 0) {
+            cancelAnimationFrame(game.rafId);
+            alert(`game over with score: ${game.score}`);
+            document.location.reload()
+          } else {
+            game.lives -= 1;
+            game.player.x = initialState.player.x;
+            game.player.y = initialState.player.y;
+            game.ball.x = initialState.ball.x;
+            game.ball.y = initialState.ball.y;
+            game.ball.movementDelta.x = initialState.ball.movementDelta.x;
+            game.ball.movementDelta.y = initialState.ball.movementDelta.y;
+          }
+        }
+      }
+
+      if (game.leftPressed && game.player.x - game.player.movementDelta > 0) {
+        game.player.x -= game.player.movementDelta;
+      }
+      if (game.rightPressed && game.player.x + game.player.movementDelta < game.area.width - game.player.width) {
+        game.player.x += game.player.movementDelta;
+      }
+
+      collisionDetection(nextFrameBallX, nextFrameBallY);
+      updateBallMovementDirectionAndGameSpeed();
+
+      if (game.score >= game.maxRoundPossibleScore) {
+        cancelAnimationFrame(game.rafId);
+        alert(`Congratulations! You win with score: ${game.score}`);
+        document.location.reload();
+      }
+    }
+
     function renderFrame() {
       ctx.clearRect(0, 0, game.area.width, game.area.height);
       drawPlayer();
       drawBricks()
       drawBall();
+      drawScore();
+      drawLives();
     }
 
     function drawPlayer() {
       ctx.beginPath();
       ctx.rect(game.player.x, game.player.y, game.player.width, game.player.height);
-      ctx.fillStyle = '#cc6600';
+      ctx.fillStyle = `rgba(51,102,255, ${(game.lives+1)/game.maxRoundPossibleLives})`;
       ctx.fill();
       ctx.closePath();
     }
@@ -109,62 +161,50 @@
     function drawBricks() {
       for (let c = 0; c < game.brick.cols; c++) {
         for (let r = 0; r < game.brick.rows; r++) {
+          const brick = game.bricks[c][r];
+
+          if (brick.status === 0) continue;
+
           ctx.beginPath();
-          ctx.rect(game.bricks[c][r].x, game.bricks[c][r].y, game.brick.width, game.brick.height);
-          ctx.fillStyle = '#6394e7';
+          ctx.rect(brick.x, brick.y, game.brick.width, game.brick.height);
+          ctx.fillStyle = brick.colors[brick.status - 1];
           ctx.fill();
           ctx.closePath();
         }
       }
     }
 
+    function drawScore() {
+      ctx.font = '16px Arial'
+      ctx.fillStyle = '#b5ff68';
+      ctx.fillText(`Score: ${game.score}`, 8, 20);
+    }
+
+    function drawLives() {
+      ctx.font = '16px Arial'
+      ctx.fillStyle = '#b5ff68';
+      ctx.fillText(`Lives: ${game.lives}`, 8, 40);
+    }
+
     function collisionDetection(ballX, ballY) {
       for (let c = 0; c < game.brick.cols; c++) {
         for (let r = 0; r < game.brick.rows; r++) {
           const brick = game.bricks[c][r];
+
+          if (brick.status === 0) continue;
+
           if (ballX > brick.x && ballX < brick.x + game.brick.width && ballY < brick.y + game.brick.height &&
             ballY > brick.y) {
             console.log({
-              brickRow: r,
-              brickColumn: c,
-              ballX: ballX,
-              ballY: ballY,
-            })
+              brick
+            });
+
+            game.score += 1;
+            if (brick.status > 0) brick.status -= 1;
             game.ball.movementDelta.y = -game.ball.movementDelta.y;
           }
         }
       }
-    }
-
-    function updateGameState() {
-      game.ball.x += game.ball.movementDelta.x;
-      game.ball.y += game.ball.movementDelta.y;
-
-      const nextFrameBallX = game.ball.x + game.ball.movementDelta.x;
-      const nextFrameBallY = game.ball.y + game.ball.movementDelta.y;
-      if (nextFrameBallX > game.area.width - game.ball.radius || nextFrameBallX < game.ball.radius) {
-        game.ball.movementDelta.x = -game.ball.movementDelta.x;
-      }
-      if (nextFrameBallY < game.ball.radius || nextFrameBallY > game.area.height - game.ball.radius) { //  || nextFrameBallY > game.area.height - game.ball.radius
-        game.ball.movementDelta.y = -game.ball.movementDelta.y;
-      } else if (nextFrameBallY > game.area.height - game.ball.radius) {
-        if (nextFrameBallX > game.player.x && nextFrameBallX < game.player.x + game.player.width) {
-          game.ball.movementDelta.y = -game.ball.movementDelta.y;
-        } else {
-          cancelAnimationFrame(game.rafId);
-          alert('game over');
-          document.location.reload()
-        }
-      }
-
-      if (game.leftPressed && game.player.x - game.player.movementDelta > 0) {
-        game.player.x -= game.player.movementDelta;
-      }
-      if (game.rightPressed && game.player.x + game.player.movementDelta < game.area.width - game.player.width) {
-        game.player.x += game.player.movementDelta;
-      }
-
-      collisionDetection(nextFrameBallX, nextFrameBallY);
     }
 
     function keyDownListener(event) {
@@ -189,6 +229,50 @@
       if (code === 'ArrowRight') {
         game.rightPressed = false;
       }
+    }
+
+    function mouseMoveListener(e) {
+      const relativeX = e.clientX - canvas.offsetLeft;
+      if (relativeX > game.player.width / 2 && relativeX < canvas.width - game.player.width / 2) {
+        game.player.x = relativeX - game.player.width / 2;
+      }
+    }
+
+    function createInitialBrickState() {
+      for (let c = 0; c < game.brick.cols; c++) {
+        game.bricks[c] = [];
+        for (let r = 0; r < game.brick.rows; r++) {
+          const brickScore = getRandomIntInclusive(1, 5);
+          game.bricks[c][r] = {
+            x: (c * (game.brick.width + game.brick.padding)) + game.brick.offsetLeft,
+            y: (r * (game.brick.height + game.brick.padding)) + game.brick.offsetTop,
+            status: brickScore,
+            colors: ['#b62020', '#cb2424', '#fe2e2e', '#fe5757', '#fe8181']
+          };
+
+          game.maxRoundPossibleScore += brickScore;
+        }
+      }
+    }
+
+    function updateBallMovementDirectionAndGameSpeed() {
+      if (game.ball.movementDelta.x > 0) {
+        game.ball.x += game.ball.movementDelta.x // + game.score;
+      } else {
+        game.ball.x += game.ball.movementDelta.x // - game.score;
+      }
+
+      if (game.ball.movementDelta.y > 0) {
+        game.ball.y += game.ball.movementDelta.y // + game.score;
+      } else {
+        game.ball.y += game.ball.movementDelta.y // - game.score;
+      }
+    }
+
+    function getRandomIntInclusive(min, max) {
+      min = Math.ceil(min);
+      max = Math.floor(max);
+      return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive 
     }
   </script>
 
