@@ -1,172 +1,197 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <meta charset="utf-8" />
-    <title>Gamedev Canvas Workshop</title>
-    <style>
-    	* { padding: 0; margin: 0; }
-    	canvas { background: #191919; display: block; margin: 32vh auto; }
-    </style>
-</head>
-<body>
-
-<canvas id="gameCanvas" width="480" height="320"></canvas>
-
-<script>
-	const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const game = {
-        rafId: null,
-        ball: {
-            x: 300,
-            y: 240,
-            radius: 10,
-            movementDelta: {
-                x: 5,
-                y: -5
-            }
-        },
-        area: {
-            width: canvas.width,
-            height: canvas.height
-        },
-        player: {
-            width: 100,
-            height: 25,
-            x: (canvas.width - 100) / 2,
-            y: canvas.height - 25 - 2,
-            movementDelta: 5
-        },
-        brick: {
-          rows: 3,
-          cols: 5,
-          width: 84,
-          height: 25,
-          padding: 10,
-          offsetTop: 10,
-          offsetLeft: 10
-        },
-        bricks: [],
-        rightPressed: false,
-        leftPressed: false
+  <meta charset="utf-8" />
+  <title>Gamedev Canvas Workshop</title>
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
     }
 
-    for (let c=0; c<game.brick.cols; c++) {
-        game.bricks[c] = [];
-        for (let r=0; r<game.brick.rows; r++) {
-            game.bricks[c][r] = { 
-                x: (c*(game.brick.width+game.brick.padding))+game.brick.offsetLeft,
-                y: (r*(game.brick.height+game.brick.padding))+game.brick.offsetTop
-            };
+    canvas {
+      background: #191919;
+      display: block;
+      margin: 32vh auto;
+    }
+  </style>
+</head>
+
+<body>
+
+  <canvas id="gameCanvas" width="480" height="320"></canvas>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const game = {
+      rafId: null,
+      ball: {
+        x: 300,
+        y: 240,
+        radius: 10,
+        movementDelta: {
+          x: 5,
+          y: -5
         }
+      },
+      area: {
+        width: canvas.width,
+        height: canvas.height
+      },
+      player: {
+        width: 100,
+        height: 25,
+        x: (canvas.width - 100) / 2,
+        y: canvas.height - 25 - 2,
+        movementDelta: 5
+      },
+      brick: {
+        rows: 3,
+        cols: 5,
+        width: 84,
+        height: 25,
+        padding: 10,
+        offsetTop: 10,
+        offsetLeft: 10
+      },
+      bricks: [],
+      rightPressed: false,
+      leftPressed: false
+    }
+
+    for (let c = 0; c < game.brick.cols; c++) {
+      game.bricks[c] = [];
+      for (let r = 0; r < game.brick.rows; r++) {
+        game.bricks[c][r] = {
+          x: (c * (game.brick.width + game.brick.padding)) + game.brick.offsetLeft,
+          y: (r * (game.brick.height + game.brick.padding)) + game.brick.offsetTop
+        };
+      }
     }
 
     console.log(game);
-    
+
     document.addEventListener('keydown', keyDownListener);
     document.addEventListener('keyup', keyUpListener);
     main();
 
     function main() {
-        game.rafId = requestAnimationFrame(main);
-        updateGameState();
-        renderFrame();
+      game.rafId = requestAnimationFrame(main);
+      updateGameState();
+      renderFrame();
     }
 
     function renderFrame() {
-        ctx.clearRect(0,0, game.area.width, game.area.height);
-        drawPlayer();
-        drawBricks()
-        drawBall();
+      ctx.clearRect(0, 0, game.area.width, game.area.height);
+      drawPlayer();
+      drawBricks()
+      drawBall();
     }
 
     function drawPlayer() {
-        ctx.beginPath();
-        ctx.rect(game.player.x, game.player.y, game.player.width, game.player.height);
-        ctx.fillStyle = '#cc6600';
-        ctx.fill();
-        ctx.closePath();
+      ctx.beginPath();
+      ctx.rect(game.player.x, game.player.y, game.player.width, game.player.height);
+      ctx.fillStyle = '#cc6600';
+      ctx.fill();
+      ctx.closePath();
     }
 
-    function drawBall(){
-        ctx.beginPath();
-        ctx.arc(game.ball.x, game.ball.y,game.ball.radius,0, Math.PI*2,false);
-        ctx.fillStyle = '#b9e740';
-        ctx.fill();
-        ctx.closePath();
+    function drawBall() {
+      ctx.beginPath();
+      ctx.arc(game.ball.x, game.ball.y, game.ball.radius, 0, Math.PI * 2, false);
+      ctx.fillStyle = '#b9e740';
+      ctx.fill();
+      ctx.closePath();
     }
 
     function drawBricks() {
-        for (let c=0; c<game.brick.cols; c++) {
-            for (let r=0; r<game.brick.rows; r++) {
-                ctx.beginPath();
-                ctx.rect(game.bricks[c][r].x, game.bricks[c][r].y, game.brick.width, game.brick.height);
-                ctx.fillStyle = '#6394e7';
-                ctx.fill();
-                ctx.closePath();
-            }
+      for (let c = 0; c < game.brick.cols; c++) {
+        for (let r = 0; r < game.brick.rows; r++) {
+          ctx.beginPath();
+          ctx.rect(game.bricks[c][r].x, game.bricks[c][r].y, game.brick.width, game.brick.height);
+          ctx.fillStyle = '#6394e7';
+          ctx.fill();
+          ctx.closePath();
         }
+      }
     }
 
     function collisionDetection(ballX, ballY) {
-        for (let c=0; c<game.brick.cols; c++) {
-            for (let r=0; r<game.brick.rows; r++) {
-                const brick = game.bricks[c][r];
-                if (ballX > brick.x && ballX < brick.x + game.brick.width && ballY < brick.y + game.brick.height && ballY > brick.y) 
-                    { 
-                        console.log({
-                            brickRow: r,
-                            brickColumn: c,
-                            ballX: ballX,
-                            ballY: ballY,
-                        })
-                        game.ball.movementDelta.y = -game.ball.movementDelta.y; 
-                    }
-            }
+      for (let c = 0; c < game.brick.cols; c++) {
+        for (let r = 0; r < game.brick.rows; r++) {
+          const brick = game.bricks[c][r];
+          if (ballX > brick.x && ballX < brick.x + game.brick.width && ballY < brick.y + game.brick.height &&
+            ballY > brick.y) {
+            console.log({
+              brickRow: r,
+              brickColumn: c,
+              ballX: ballX,
+              ballY: ballY,
+            })
+            game.ball.movementDelta.y = -game.ball.movementDelta.y;
+          }
         }
+      }
     }
 
     function updateGameState() {
-        game.ball.x += game.ball.movementDelta.x;
-        game.ball.y += game.ball.movementDelta.y;
+      game.ball.x += game.ball.movementDelta.x;
+      game.ball.y += game.ball.movementDelta.y;
 
-        const nextFrameBallX = game.ball.x + game.ball.movementDelta.x;
-        const nextFrameBallY = game.ball.y + game.ball.movementDelta.y;
-        if (nextFrameBallX > game.area.width - game.ball.radius || nextFrameBallX < game.ball.radius) {
-            game.ball.movementDelta.x = -game.ball.movementDelta.x;
+      const nextFrameBallX = game.ball.x + game.ball.movementDelta.x;
+      const nextFrameBallY = game.ball.y + game.ball.movementDelta.y;
+      if (nextFrameBallX > game.area.width - game.ball.radius || nextFrameBallX < game.ball.radius) {
+        game.ball.movementDelta.x = -game.ball.movementDelta.x;
+      }
+      if (nextFrameBallY < game.ball.radius || nextFrameBallY > game.area.height - game.ball.radius) { //  || nextFrameBallY > game.area.height - game.ball.radius
+        game.ball.movementDelta.y = -game.ball.movementDelta.y;
+      } else if (nextFrameBallY > game.area.height - game.ball.radius) {
+        if (nextFrameBallX > game.player.x && nextFrameBallX < game.player.x + game.player.width) {
+          game.ball.movementDelta.y = -game.ball.movementDelta.y;
+        } else {
+          cancelAnimationFrame(game.rafId);
+          alert('game over');
+          document.location.reload()
         }
-        if (nextFrameBallY < game.ball.radius || nextFrameBallY > game.area.height - game.ball.radius) {    //  || nextFrameBallY > game.area.height - game.ball.radius
-            game.ball.movementDelta.y = -game.ball.movementDelta.y;
-        } else if (nextFrameBallY > game.area.height - game.ball.radius) {
-            if (nextFrameBallX > game.player.x && nextFrameBallX < game.player.x + game.player.width) { 
-                game.ball.movementDelta.y = -game.ball.movementDelta.y;
-            } else {
-                cancelAnimationFrame(game.rafId);
-                alert('game over');
-                document.location.reload()
-            }
-        }
+      }
 
-        if (game.leftPressed && game.player.x - game.player.movementDelta > 0) 
-            { game.player.x -= game.player.movementDelta; }
-        if (game.rightPressed && game.player.x + game.player.movementDelta < game.area.width - game.player.width) 
-            { game.player.x += game.player.movementDelta; }
+      if (game.leftPressed && game.player.x - game.player.movementDelta > 0) {
+        game.player.x -= game.player.movementDelta;
+      }
+      if (game.rightPressed && game.player.x + game.player.movementDelta < game.area.width - game.player.width) {
+        game.player.x += game.player.movementDelta;
+      }
 
-        collisionDetection(nextFrameBallX, nextFrameBallY);
+      collisionDetection(nextFrameBallX, nextFrameBallY);
     }
 
     function keyDownListener(event) {
-        const { code } = event;
-        if (code === 'ArrowLeft') { game.leftPressed = true; }
-        if (code === 'ArrowRight') { game.rightPressed = true; }
+      const {
+        code
+      } = event;
+      if (code === 'ArrowLeft') {
+        game.leftPressed = true;
+      }
+      if (code === 'ArrowRight') {
+        game.rightPressed = true;
+      }
     }
 
     function keyUpListener(event) {
-        const { code } = event;
-        if (code === 'ArrowLeft') { game.leftPressed = false; }
-        if (code === 'ArrowRight') { game.rightPressed = false; }
+      const {
+        code
+      } = event;
+      if (code === 'ArrowLeft') {
+        game.leftPressed = false;
+      }
+      if (code === 'ArrowRight') {
+        game.rightPressed = false;
+      }
     }
-</script>
+  </script>
 
 </body>
+
 </html>
