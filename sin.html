@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Sin</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        canvas {
+            background: #191919;
+            display: block;
+            margin: 10vh auto;
+            cursor: none;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="mainCanvas" width="800" height="600"></canvas>
+
+    <script>
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.lineWidth = 3;
+
+        let highlightedLine = 0;
+
+        main()
+
+        function main(tFrame) {
+            window.requestAnimationFrame(main);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawChart();
+
+            if (highlightedLine >= canvas.height) {
+                highlightedLine = 0;
+            } else {
+                highlightedLine += 1;
+            }  
+        }
+
+        function drawChart() {
+            for (let y = 0; y < canvas.height; y += 3) {
+                ctx.beginPath();
+                ctx.moveTo(canvas.width / 2, y);
+                ctx.lineTo((canvas.width / 2) + (Math.sin(y) * 150), y);
+                if (highlightedLine > y && highlightedLine <= y+2) {
+                    ctx.strokeStyle = 'violet'
+                } else if (highlightedLine > y + 2 && highlightedLine <= y+4) {
+                    ctx.strokeStyle = 'blue'
+                } else if (highlightedLine > y + 4 && highlightedLine <= y+6) {
+                    ctx.strokeStyle = 'skyblue'
+                } else if (highlightedLine > y + 6 && highlightedLine <= y+8) {
+                    ctx.strokeStyle = 'green'
+                } else if (highlightedLine > y + 8 && highlightedLine <= y+10) {
+                    ctx.strokeStyle = 'yellow'
+                } else if (highlightedLine > y + 10 && highlightedLine <= y+12) {
+                    ctx.strokeStyle = 'orange'
+                } else if (highlightedLine > y + 12 && highlightedLine <= y+14) {
+                    ctx.strokeStyle = 'red'
+                } else {
+                    ctx.strokeStyle = 'white'
+                }
+                ctx.stroke();
+                ctx.closePath();
+            }
+        }
+
+    </script>
+</body>
+
+</html>
