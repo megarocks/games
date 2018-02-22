@@ -40,7 +40,7 @@
       game.scale.pageAlignVertically = true;
 
       game.stage.backgroundColor = '#e9e9e9'
-      game.load.image('ball', 'assets/img/ball.png');
+      game.load.spritesheet('ball', 'assets/img/wobble.png', 20, 20);
       game.load.image('paddle', 'assets/img/paddle.png');
       game.load.image('brick', 'assets/img/brick.png');
 
@@ -53,6 +53,9 @@
       game.physics.arcade.checkCollision.down = false;
 
       ball = game.add.sprite(game.world.width * 0.5, game.world.height - 25, 'ball');
+      ball.animations.add('wobble', [0, 1, 0, 2, 0, 1, 0, 2, 0], 24);
+
+
       game.physics.enable(ball, Phaser.Physics.ARCADE);
       ball.anchor.set(0.5)
       ball.checkWorldBounds = true;
@@ -82,7 +85,7 @@
 
     // is executed on every frame
     function update() {
-      game.physics.arcade.collide(ball, paddle)
+      game.physics.arcade.collide(ball, paddle, ballHitPaddle)
       game.physics.arcade.collide(ball, bricks, ballHitBrick)
       paddle.x = game.input.x || game.world.width * 0.5
     }
@@ -117,8 +120,15 @@
       }
     }
 
+    function ballHitPaddle() {
+      ball.animations.play('wobble')
+    }
+
     function ballHitBrick(ball, brick) {
+      ball.animations.play('wobble')
+
       brick.kill();
+
       score += 10;
       scoreText.setText(`Points: ${score}`);
 
