@@ -125,18 +125,24 @@
     }
 
     function ballHitBrick(ball, brick) {
+      let countAlive;
       ball.animations.play('wobble')
 
-      brick.kill();
+      const killTween = game.add.tween(brick.scale);
+      killTween.to({ x: 0, y: 0 }, 500, Phaser.Easing.Linear.None);
+      killTween.onComplete.addOnce(() => {
+        brick.kill()
+        countAlive = bricks.children.filter(b => b.alive).length;
+
+        if (!countAlive) {
+          alert(`You win with score: ${score}`);
+          location.reload();
+        }
+      })
+      killTween.start();
 
       score += 10;
       scoreText.setText(`Points: ${score}`);
-
-      const countAlive = bricks.children.filter(b => b.alive).length;
-      if (!countAlive) {
-        alert(`You win with score: ${score}`);
-        location.reload();
-      }
     }
 
     function ballLeavesScreen() {
