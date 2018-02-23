@@ -13,7 +13,7 @@
         canvas {
             background: #191919;
             display: block;
-            margin: 10vh auto;
+            margin: 0 auto;
             cursor: none;
         }
     </style>
@@ -42,7 +42,7 @@
                 firstIteration = false;
             } else {
                 highlightedLine += 1;
-            }  
+            }
         }
 
         function drawChart() {
@@ -51,19 +51,19 @@
                 ctx.moveTo(canvas.width / 2, y);
                 ctx.lineTo((canvas.width / 2) + (Math.sin(y) * 300), y);
 
-                if (highlightedLine > y && highlightedLine <= y+20) {
+                if (highlightedLine > y && highlightedLine <= y + 20) {
                     ctx.strokeStyle = 'violet'
-                } else if (highlightedLine > y + 20 && highlightedLine <= y+40) {
+                } else if (highlightedLine > y + 20 && highlightedLine <= y + 40) {
                     ctx.strokeStyle = 'blue'
-                } else if (highlightedLine > y + 40 && highlightedLine <= y+60) {
+                } else if (highlightedLine > y + 40 && highlightedLine <= y + 60) {
                     ctx.strokeStyle = 'skyblue'
-                } else if (highlightedLine > y + 60 && highlightedLine <= y+80) {
+                } else if (highlightedLine > y + 60 && highlightedLine <= y + 80) {
                     ctx.strokeStyle = 'green'
-                } else if (highlightedLine > y + 80 && highlightedLine <= y+100) {
+                } else if (highlightedLine > y + 80 && highlightedLine <= y + 100) {
                     ctx.strokeStyle = 'yellow'
-                } else if (highlightedLine > y + 100 && highlightedLine <= y+120) {
+                } else if (highlightedLine > y + 100 && highlightedLine <= y + 120) {
                     ctx.strokeStyle = 'orange'
-                } else if (highlightedLine > y + 120 && highlightedLine <= y+140) {
+                } else if (highlightedLine > y + 120 && highlightedLine <= y + 140) {
                     ctx.strokeStyle = 'red'
                 } else {
                     ctx.strokeStyle = 'white'
@@ -77,7 +77,6 @@
                 ctx.closePath();
             }
         }
-
     </script>
 </body>
 
