@@ -1,8 +1,10 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { RouterModule, Routes } from '@angular/router';
 
+import { MatTabsModule } from '@angular/material/tabs';
 
 import { AppComponent } from './app.component';
 import { BrickGamePureJsComponent } from './brick-game-pure-js/brick-game-pure-js.component';
@@ -21,11 +23,13 @@ const appRoutes: Routes = [
     AppComponent,
     BrickGamePureJsComponent,
     BrickGamePhaserComponent,
-    SinVisualizationComponent
+    SinVisualizationComponent,
   ],
   imports: [
     BrowserModule,
-    RouterModule.forRoot(appRoutes, { enableTracing: true })
+    RouterModule.forRoot(appRoutes, { enableTracing: true }),
+    BrowserAnimationsModule,
+    MatTabsModule
   ],
   providers: [],
   bootstrap: [AppComponent]
